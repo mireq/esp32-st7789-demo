@@ -71,8 +71,8 @@
 #define ST7789_CMD_LCMCTRL           0xc0 // LCM Control
 #define ST7789_CMD_IDSET             0xc1 // ID Setting
 #define ST7789_CMD_VDVVRHEN          0xc2 // VDV and VRH Command enable
-#define ST7789_CMD_VRHS              0xc3 // VRH Set
-#define ST7789_CMD_VDVSET            0xc4 // VDV Setting
+#define ST7789_CMD_VRHSET            0xc3 // VRH Set
+#define ST7789_CMD_VDVSET            0xc4 // VDV Set
 #define ST7789_CMD_VCMOFSET          0xc5 // VCOM Offset Set
 #define ST7789_CMD_FRCTR2            0xc6 // FR Control 2
 #define ST7789_CMD_CABCCTRL          0xc7 // CABC Control

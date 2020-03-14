@@ -104,26 +104,29 @@ void st7789_lcd_init(st7789_driver_t *driver) {
 		{ST7789_CMD_INVON, 0, 0, NULL},                     // Inversion on
 		{ST7789_CMD_CASET, 0, 4, (const uint8_t *)&caset},  // Set width
 		{ST7789_CMD_RASET, 0, 4, (const uint8_t *)&raset},  // Set height
+
 		// Porch setting
-		//{ST7789_CMD_PORCTRL, 0, 5, (const uint8_t *)"\x0c\x0c\x00\x33\x33"},
-		// Set VGH to 13.26V and VGL to -10.43V
-		//{ST7789_CMD_GCTRL, 0, 1, (const uint8_t *)"\x35"},
-		// Set VCOM to 1.675V
-		//{ST7789_CMD_VCOMS, 0, 1, (const uint8_t *)"\x1f"},
-		// LCM control
-		//{ST7789_CMD_LCMCTRL, 0, 1, (const uint8_t *)"\x2c"},
-		// VDV/VRH command enable
-		//{ST7789_CMD_VDVVRHEN, 0, 2, (const uint8_t *)"\x01\xc3"},
-		// VDV set to default value
-		//{ST7789_CMD_VDVSET, 0, 1, (const uint8_t *)"\x20"},
-		// Set frame rate to 111Hz
-		//{ST7789_CMD_FRCTR2, 0, 1, (const uint8_t *)"\x01"},
-		// Set VDS to 2.3V, AVCL to -4.8V and AVDD to 6.8V
-		//{ST7789_CMD_PWCTRL1, 0, 2, (const uint8_t *)"\xa4\xa1"},
-		// Gamma corection
-		//{ST7789_CMD_GAMSET, 0, 1, (const uint8_t *)"\x01"},
+		{ST7789_CMD_PORCTRL, 0, 5, (const uint8_t *)"\x0c\x0c\x00\x33\x33"},
+		// Set VGH to 12.54V and VGL to -9.6V
+		{ST7789_CMD_GCTRL, 0, 1, (const uint8_t *)"\x14"},
+		// Set VCOM to 1.475V
+		{ST7789_CMD_VCOMS, 0, 1, (const uint8_t *)"\x37"},
+		// Enable VDV/VRH control
+		{ST7789_CMD_VDVVRHEN, 0, 2, (const uint8_t *)"\x01\xff"},
+		// VAP(GVDD) = 4.45+(vcom+vcom offset+vdv)
+		{ST7789_CMD_VRHSET, 0, 1, (const uint8_t *)"\x12"},
+		// VDV = 0V
+		{ST7789_CMD_VDVSET, 0, 1, (const uint8_t *)"\x20"},
+		// AVDD=6.8V, AVCL=-4.8V, VDDS=2.3V
+		{ST7789_CMD_PWCTRL1, 0, 2, (const uint8_t *)"\xa4\xa1"},
+		// 60 fps
+		{ST7789_CMD_FRCTR2, 0, 1, (const uint8_t *)"\x0f"},
+		// Gama 2.2
+		{ST7789_CMD_GAMSET, 0, 1, (const uint8_t *)"\x01"},
+		// Gama curve
 		{ST7789_CMD_PVGAMCTRL, 0, 14, (const uint8_t *)"\xd0\x08\x11\x08\x0c\x15\x39\x33\x50\x36\x13\x14\x29\x2d"},
 		{ST7789_CMD_NVGAMCTRL, 0, 14, (const uint8_t *)"\xd0\x08\x10\x08\x06\x06\x39\x44\x51\x0b\x16\x14\x2f\x31"},
+
 		// Little endian
 		{ST7789_CMD_RAMCTRL, 0, 2, (const uint8_t *)"\x00\xc8"},
 		{ST7789_CMDLIST_END, 0, 0, NULL},                   // End of commands
