@@ -32,6 +32,7 @@ static esp_err_t font_cache_init(font_render_t *render) {
 
 	render->max_pixel_width = (render->pixel_size * (render->font_face->ft_face->bbox.xMax - render->font_face->ft_face->bbox.xMin)) / render->font_face->ft_face->units_per_EM + 1;
 	render->max_pixel_height = (render->pixel_size * (render->font_face->ft_face->bbox.yMax - render->font_face->ft_face->bbox.yMin)) / render->font_face->ft_face->units_per_EM + 1;
+	render->origin = (render->pixel_size * (-render->font_face->ft_face->bbox.yMin)) / render->font_face->ft_face->units_per_EM;
 	render->bytes_per_glyph = (size_t)render->max_pixel_width * (size_t)render->max_pixel_height * 2;
 	render->bytes_per_glyph = (render->bytes_per_glyph >> 3) + (render->bytes_per_glyph & 0x07 ? 1 : 0);
 
@@ -183,26 +184,20 @@ esp_err_t font_render_glyph(font_render_t *render, uint32_t utf_code) {
 		}
 
 		render->glyph_cache_records[found_cache].utf_code = utf_code;
+		render->glyph_cache_records[found_cache].metrics = render->font_face->ft_face->glyph->metrics;
 		render->glyph_cache_records[found_cache].bitmap_width = render->font_face->ft_face->glyph->bitmap.width;
 		render->glyph_cache_records[found_cache].bitmap_height = render->font_face->ft_face->glyph->bitmap.rows;
+		render->glyph_cache_records[found_cache].bitmap_left = render->font_face->ft_face->glyph->bitmap_left;
+		render->glyph_cache_records[found_cache].bitmap_top = render->font_face->ft_face->glyph->bitmap_top;
+		render->glyph_cache_records[found_cache].advance = render->font_face->ft_face->glyph->advance.x >> 6;
+
 		render->bitmap = render->glyph_cache + (render->bytes_per_glyph * found_cache);
 		memset(render->bitmap, 0, render->bytes_per_glyph);
 		size_t pos = 0;
 		for (size_t y = 0; y < render->font_face->ft_face->glyph->bitmap.rows; ++y) {
 			for (size_t x = 0; x < render->font_face->ft_face->glyph->bitmap.width; ++x) {
 				uint8_t color = render->font_face->ft_face->glyph->bitmap.buffer[y * render->font_face->ft_face->glyph->bitmap.pitch + x];
-				uint8_t compressed_color = 0;
-				if (color >= 160) {
-					compressed_color = 3;
-				}
-				else if (color >= 96) {
-					compressed_color = 2;
-				}
-				else if (color >= 32) {
-					compressed_color = 1;
-				}
-				//render->bitmap[pos >> 2] |= ((color >> 6) << ((pos & 0x03) << 1));
-				render->bitmap[pos >> 2] |= compressed_color << ((pos & 0x03) << 1);
+				render->bitmap[pos >> 2] |= ((color >> 6) << ((pos & 0x03) << 1));
 				pos++;
 			}
 		}
@@ -216,6 +211,9 @@ esp_err_t font_render_glyph(font_render_t *render, uint32_t utf_code) {
 	render->metrics = render->glyph_cache_records[found_cache].metrics;
 	render->bitmap_width = render->glyph_cache_records[found_cache].bitmap_width;
 	render->bitmap_height = render->glyph_cache_records[found_cache].bitmap_height;
+	render->bitmap_left = render->glyph_cache_records[found_cache].bitmap_left;
+	render->bitmap_top = render->glyph_cache_records[found_cache].bitmap_top;
+	render->advance = render->glyph_cache_records[found_cache].advance;
 	render->bitmap = render->glyph_cache + (render->bytes_per_glyph * found_cache);
 
 	return ESP_OK;

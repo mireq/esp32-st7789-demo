@@ -1,5 +1,3 @@
-// SPDX-License-Identifier: MIT
-
 #include <stdbool.h>
 #include <string.h>
 #include <sys/param.h>
@@ -76,9 +74,9 @@ esp_err_t st7789_init(st7789_driver_t *driver) {
 
 void st7789_reset(st7789_driver_t *driver) {
 	gpio_set_level(driver->pin_reset, 0);
-	vTaskDelay(10 / portTICK_PERIOD_MS);
+	vTaskDelay(20 / portTICK_PERIOD_MS);
 	gpio_set_level(driver->pin_reset, 1);
-	vTaskDelay(120 / portTICK_PERIOD_MS);
+	vTaskDelay(130 / portTICK_PERIOD_MS);
 }
 
 
@@ -119,13 +117,13 @@ void st7789_lcd_init(st7789_driver_t *driver) {
 		// VDV set to default value
 		//{ST7789_CMD_VDVSET, 0, 1, (const uint8_t *)"\x20"},
 		// Set frame rate to 111Hz
-		{ST7789_CMD_FRCTR2, 0, 1, (const uint8_t *)"\x01"},
+		//{ST7789_CMD_FRCTR2, 0, 1, (const uint8_t *)"\x01"},
 		// Set VDS to 2.3V, AVCL to -4.8V and AVDD to 6.8V
 		//{ST7789_CMD_PWCTRL1, 0, 2, (const uint8_t *)"\xa4\xa1"},
 		// Gamma corection
 		//{ST7789_CMD_GAMSET, 0, 1, (const uint8_t *)"\x01"},
-		//{ST7789_CMD_PVGAMCTRL, 0, 14, (const uint8_t *)"\xd0\x08\x11\x08\x0c\x15\x39\x33\x50\x36\x13\x14\x29\x2d"},
-		//{ST7789_CMD_NVGAMCTRL, 0, 14, (const uint8_t *)"\xd0\x08\x10\x08\x06\x06\x39\x44\x51\x0b\x16\x14\x2f\x31"},
+		{ST7789_CMD_PVGAMCTRL, 0, 14, (const uint8_t *)"\xd0\x08\x11\x08\x0c\x15\x39\x33\x50\x36\x13\x14\x29\x2d"},
+		{ST7789_CMD_NVGAMCTRL, 0, 14, (const uint8_t *)"\xd0\x08\x10\x08\x06\x06\x39\x44\x51\x0b\x16\x14\x2f\x31"},
 		// Little endian
 		{ST7789_CMD_RAMCTRL, 0, 2, (const uint8_t *)"\x00\xc8"},
 		{ST7789_CMDLIST_END, 0, 0, NULL},                   // End of commands
@@ -135,6 +133,8 @@ void st7789_lcd_init(st7789_driver_t *driver) {
 	const st7789_command_t init_sequence2[] = {
 		{ST7789_CMD_DISPON, 100, 0, NULL},                  // Display on
 		{ST7789_CMD_SLPOUT, 100, 0, NULL},                  // Sleep out
+		{ST7789_CMD_CASET, 0, 4, caset},
+		{ST7789_CMD_RASET, 0, 4, raset},
 		{ST7789_CMD_RAMWR, 0, 0, NULL},
 		{ST7789_CMDLIST_END, 0, 0, NULL},                   // End of commands
 	};
@@ -268,18 +268,22 @@ void st7789_swap_buffers(st7789_driver_t *driver) {
 	driver->current_buffer = driver->current_buffer == driver->buffer_a ? driver->buffer_b : driver->buffer_a;
 }
 
-st7789_color_t st7789_rgb_to_color(uint8_t r, uint8_t g, uint8_t b) {
-	return (((uint16_t)r >> 3) << 11) | (((uint16_t)g >> 2) << 5) | ((uint16_t)b >> 3);
+
+#include <stdio.h>
+#include <stdlib.h>
+
+uint8_t st7789_dither_table[256] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+void st7789_randomize_dither_table() {
+	uint16_t *dither_table = (uint16_t *)st7789_dither_table;
+	for (size_t i = 0; i < sizeof(st7789_dither_table) / 2; ++i) {
+		dither_table[i] = rand() & 0xffff;
+	}
 }
 
-void st7789_color_to_rgb(st7789_color_t color, uint8_t *r, uint8_t *g, uint8_t *b) {
-	*r = (color >> 11) << 3;
-	*g = ((color >> 5) << 2) & 0xff;
-	*b = (color << 3) & 0xff;
-}
 
 void st7789_draw_gray2_bitmap(uint8_t *src_buf, st7789_color_t *target_buf, uint8_t r, uint8_t g, uint8_t b, int x, int y, int src_w, int src_h, int target_w, int target_h) {
-	if (x >= target_w || y >= target_h || x + src_w < 0 || y + src_h < 0) {
+	if (x >= target_w || y >= target_h || x + src_w <= 0 || y + src_h <= 0) {
 		return;
 	}
 
@@ -291,6 +295,7 @@ void st7789_draw_gray2_bitmap(uint8_t *src_buf, st7789_color_t *target_buf, uint
 	size_t src_pos = 0;
 	size_t target_pos = 0;
 	size_t x_pos = 0;
+	size_t y_pos = 0;
 
 	if (y < 0) {
 		src_pos = (-y) * src_w;
@@ -318,7 +323,7 @@ void st7789_draw_gray2_bitmap(uint8_t *src_buf, st7789_color_t *target_buf, uint
 				src_r = (src_r >> 1) + target_r;
 				src_g = (src_g >> 1) + target_g;
 				src_b = (src_b >> 1) + target_b;
-				target_buf[target_pos] = st7789_rgb_to_color(src_r, src_g, src_b);
+				target_buf[target_pos] = st7789_rgb_to_color_dither(src_r, src_g, src_b, x_pos, y_pos);
 				break;
 			case 2:
 				target_r = r >> 2;
@@ -327,10 +332,10 @@ void st7789_draw_gray2_bitmap(uint8_t *src_buf, st7789_color_t *target_buf, uint
 				src_r = (src_r >> 2) + target_r + target_r + target_r;
 				src_g = (src_g >> 2) + target_g + target_g + target_g;
 				src_b = (src_b >> 2) + target_b + target_b + target_b;
-				target_buf[target_pos] = st7789_rgb_to_color(src_r, src_g, src_b);
+				target_buf[target_pos] = st7789_rgb_to_color_dither(src_r, src_g, src_b, x_pos, y_pos);
 				break;
 			case 3:
-				target_buf[target_pos] = st7789_rgb_to_color(r, g, b);
+				target_buf[target_pos] = st7789_rgb_to_color_dither(r, g, b, x_pos, y_pos);
 				break;
 			default:
 				break;
@@ -340,6 +345,7 @@ void st7789_draw_gray2_bitmap(uint8_t *src_buf, st7789_color_t *target_buf, uint
 
 		if (x_pos == line_w) {
 			x_pos = 0;
+			y_pos++;
 			src_pos += src_skip;
 			target_pos += target_skip;
 		}

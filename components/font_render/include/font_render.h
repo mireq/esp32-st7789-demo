@@ -18,6 +18,9 @@ typedef struct glyph_cache_record {
 	font_size_t bitmap_width;
 	font_size_t bitmap_height;
 	FT_Glyph_Metrics metrics;
+	int bitmap_left;
+	int bitmap_top;
+	int advance;
 } glyph_cache_record_t;
 
 typedef struct font_face {
@@ -30,6 +33,7 @@ typedef struct font_render {
 	font_face_t *font_face;
 	font_size_t max_pixel_width;
 	font_size_t max_pixel_height;
+	font_size_t origin;
 	font_size_t bitmap_width;
 	font_size_t bitmap_height;
 	font_size_t pixel_size;
@@ -38,6 +42,9 @@ typedef struct font_render {
 	uint8_t *glyph_cache;
 	glyph_cache_record_t *glyph_cache_records;
 	FT_Glyph_Metrics metrics;
+	int bitmap_left;
+	int bitmap_top;
+	int advance;
 	uint8_t *bitmap;
 } font_render_t;
 

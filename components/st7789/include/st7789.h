@@ -148,6 +148,43 @@ void st7789_set_window(st7789_driver_t *driver, uint16_t start_x, uint16_t start
 void st7789_write_pixels(st7789_driver_t *driver, st7789_color_t *pixels, size_t length);
 void st7789_wait_until_queue_empty(st7789_driver_t *driver);
 void st7789_swap_buffers(st7789_driver_t *driver);
-st7789_color_t st7789_rgb_to_color(uint8_t r, uint8_t g, uint8_t b);
-void st7789_color_to_rgb(st7789_color_t color, uint8_t *r, uint8_t *g, uint8_t *b);
+/*
+inline st7789_color_t st7789_rgb_to_color(uint8_t r, uint8_t g, uint8_t b) {
+	return (((uint16_t)r >> 3) << 11) | (((uint16_t)g >> 2) << 5) | ((uint16_t)b >> 3);
+}
+*/
+extern uint8_t st7789_dither_table[];
+void st7789_randomize_dither_table();
+#define st7789_rgb_to_color(r, g, b) ((((st7789_color_t)(r) >> 3) << 11) | (((st7789_color_t)(g) >> 2) << 5) | ((st7789_color_t)(b) >> 3))
+inline st7789_color_t __attribute__((always_inline)) st7789_rgb_to_color_dither(uint8_t r, uint8_t g, uint8_t b, uint16_t x, uint16_t y) {
+	const uint8_t pos = ((y << 8) + (y << 3) + x) & 0xff;
+	uint8_t rand_b = st7789_dither_table[pos];
+	const uint8_t rand_r = rand_b & 0x07;
+	rand_b >>= 3;
+	const uint8_t rand_g = rand_b & 0x03;
+	rand_b >>= 2;
+
+	if (r < 249) {
+		r = r + rand_r;
+	}
+	if (g < 253) {
+		g = g + rand_g;
+	}
+	if (b < 249) {
+		b = b + rand_b;
+	}
+	return st7789_rgb_to_color(r, g, b);
+}
+
+inline void __attribute__((always_inline)) st7789_color_to_rgb(st7789_color_t color, uint8_t *r, uint8_t *g, uint8_t *b) {
+	*b = (color << 3);
+	color >>= 5;
+	color <<= 2;
+	*g = color;
+	color >>= 8;
+	*r = color << 3;
+}
+
+//void st7789_color_to_rgb(st7789_color_t color, uint8_t *r, uint8_t *g, uint8_t *b);
+//st7789_color_t st7789_rgb_to_color_dither(uint8_t r, uint8_t g, uint8_t b, uint16_t x, uint16_t y);
 void st7789_draw_gray2_bitmap(uint8_t *src_buf, st7789_color_t *target_buf, uint8_t r, uint8_t g, uint8_t b, int x, int y, int src_w, int src_h, int target_w, int target_h);
