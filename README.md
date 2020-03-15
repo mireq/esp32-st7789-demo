@@ -2,4 +2,4 @@
 
 ST7789 display driver and demo code.
 
-[![Video](http://img.youtube.com/vi/LY3ypzPcDCE/maxresdefault.jpg)](https://youtu.be/LY3ypzPcDCE)
+[![Video](http://img.youtube.com/vi/Wql4WTpPrWs/maxresdefault.jpg)](https://youtu.be/Wql4WTpPrWs)
