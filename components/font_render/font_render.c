@@ -149,6 +149,7 @@ esp_err_t font_render_glyph(font_render_t *render, uint32_t utf_code) {
 	for (size_t i = 0; i < render->cache_size; ++i) {
 		if (render->glyph_cache_records[i].utf_code == utf_code) {
 			found_cache = i;
+			break;
 		}
 	}
 
@@ -183,6 +184,13 @@ esp_err_t font_render_glyph(font_render_t *render, uint32_t utf_code) {
 			}
 		}
 
+		render->current_priority++;
+		if (render->current_priority == 0) {
+			for (size_t i = 0; i < render->cache_size; ++i) {
+				render->glyph_cache_records[i].priority = 0;
+			}
+		}
+		render->glyph_cache_records[found_cache].priority = render->current_priority;
 		render->glyph_cache_records[found_cache].utf_code = utf_code;
 		render->glyph_cache_records[found_cache].metrics = render->font_face->ft_face->glyph->metrics;
 		render->glyph_cache_records[found_cache].bitmap_width = render->font_face->ft_face->glyph->bitmap.width;
@@ -204,10 +212,7 @@ esp_err_t font_render_glyph(font_render_t *render, uint32_t utf_code) {
 	}
 
 
-	for (size_t i = 0; i < render->cache_size; ++i) {
-		render->glyph_cache_records[i].priority--;
-	}
-	render->glyph_cache_records[found_cache].priority = 0xffff;
+	render->glyph_cache_records[found_cache].priority = render->current_priority;
 	render->metrics = render->glyph_cache_records[found_cache].metrics;
 	render->bitmap_width = render->glyph_cache_records[found_cache].bitmap_width;
 	render->bitmap_height = render->glyph_cache_records[found_cache].bitmap_height;

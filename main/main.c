@@ -168,6 +168,44 @@ void green_background(st7789_driver_t *driver, uint16_t y, draw_event_param_t *p
 }
 
 
+void black_background(st7789_driver_t *driver, uint16_t y, draw_event_param_t *param) {
+	if (y >= DRAW_EVENT_CONTROL) {
+		return;
+	}
+	memset(driver->current_buffer, 0, driver->buffer_size * sizeof(st7789_color_t));
+}
+
+
+void draw_lorem_ipsum(st7789_driver_t *driver, uint16_t y, int y_shift) {
+	const int line_height = 20;
+	render_text("Lorem ipsum dolor sit amet,", &font_render2, driver, 8, y_shift, y, 255, 255, 255);
+	render_text("consectetur adipiscing elit.", &font_render2, driver, 8, y_shift + line_height * 1, y, 255, 255, 255);
+	render_text("Pellentesque tristique quam sit", &font_render2, driver, 8, y_shift + line_height * 2, y, 255, 255, 255);
+	render_text("amet dolor sagittis lacinia.", &font_render2, driver, 8, y_shift + line_height * 3, y, 255, 255, 255);
+	render_text("Phasellus non dui sed orci", &font_render2, driver, 8, y_shift + line_height * 4, y, 255, 255, 255);
+	render_text("vehicula faucibus ut vitae dui.", &font_render2, driver, 8, y_shift + line_height * 5, y, 255, 255, 255);
+	render_text("Duis pulvinar sem risus, quis", &font_render2, driver, 8, y_shift + line_height * 6, y, 255, 255, 255);
+	render_text("bibendum elit consequat vel.", &font_render2, driver, 8, y_shift + line_height * 7, y, 255, 255, 255);
+	render_text("Cras eget fermentum magna.", &font_render2, driver, 8, y_shift + line_height * 8, y, 255, 255, 255);
+	render_text("Maecenas eu pretium diam,", &font_render2, driver, 8, y_shift + line_height * 9, y, 255, 255, 255);
+	render_text("sed tempor ex.", &font_render2, driver, 8, y_shift + line_height * 10, y, 255, 255, 255);
+}
+
+
+void lorem_ipsum(st7789_driver_t *driver, uint16_t y, draw_event_param_t *param) {
+	if (y >= DRAW_EVENT_CONTROL) {
+		if (y == DRAW_EVENT_START) {
+			ESP_ERROR_CHECK(font_render_init(&font_render2, &font_face, 14, 32));
+		}
+		else if (y == DRAW_EVENT_END) {
+			font_render_destroy(&font_render2);
+		}
+		return;
+	}
+	draw_lorem_ipsum(driver, y, 8);
+}
+
+
 void fade_in_a(st7789_driver_t *driver, uint16_t y, draw_event_param_t *param) {
 	if (y >= DRAW_EVENT_CONTROL) {
 		if (y == DRAW_EVENT_START) {
@@ -495,18 +533,7 @@ void complex_text_demo(st7789_driver_t *driver, uint16_t y, draw_event_param_t *
 
 	if (frame > 192 && frame < 1200) {
 		const int y_shift = 240 + ((192 - frame) >> 1);
-		const int line_height = 20;
-		render_text("Lorem ipsum dolor sit amet,", &font_render2, driver, 8, y_shift, y, 255, 255, 255);
-		render_text("consectetur adipiscing elit.", &font_render2, driver, 8, y_shift + line_height * 1, y, 255, 255, 255);
-		render_text("Pellentesque tristique quam sit", &font_render2, driver, 8, y_shift + line_height * 2, y, 255, 255, 255);
-		render_text("amet dolor sagittis lacinia.", &font_render2, driver, 8, y_shift + line_height * 3, y, 255, 255, 255);
-		render_text("Phasellus non dui sed orci", &font_render2, driver, 8, y_shift + line_height * 4, y, 255, 255, 255);
-		render_text("vehicula faucibus ut vitae dui.", &font_render2, driver, 8, y_shift + line_height * 5, y, 255, 255, 255);
-		render_text("Duis pulvinar sem risus, quis", &font_render2, driver, 8, y_shift + line_height * 6, y, 255, 255, 255);
-		render_text("bibendum elit consequat vel.", &font_render2, driver, 8, y_shift + line_height * 7, y, 255, 255, 255);
-		render_text("Cras eget fermentum magna.", &font_render2, driver, 8, y_shift + line_height * 8, y, 255, 255, 255);
-		render_text("Maecenas eu pretium diam,", &font_render2, driver, 8, y_shift + line_height * 9, y, 255, 255, 255);
-		render_text("sed tempor ex.", &font_render2, driver, 8, y_shift + line_height * 10, y, 255, 255, 255);
+		draw_lorem_ipsum(driver, y, y_shift);
 	}
 
 	if (frame > 1200 - 240) {
@@ -560,6 +587,13 @@ void app_main(void)
 			{gradient, NULL},
 			{NULL, NULL},
 		};
+		/*
+		const draw_element_t lorem_ipsum_layers[] = {
+			{black_background, NULL},
+			{lorem_ipsum, NULL},
+			{NULL, NULL},
+		};
+		*/
 		const draw_element_t fade_in_green_layers[] = {
 			{fade_in_green, NULL},
 			{NULL, NULL},
@@ -593,6 +627,7 @@ void app_main(void)
 			{NULL, NULL},
 		};
 		const animation_step_t animation[] = {
+			//{ 4000, lorem_ipsum_layers },
 			{ 60, fade_in_green_layers },
 			{ 60, fade_in_a_layers },
 			{ 600, draw_alphabet_layers },

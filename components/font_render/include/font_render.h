@@ -46,6 +46,7 @@ typedef struct font_render {
 	int bitmap_top;
 	int advance;
 	uint8_t *bitmap;
+	uint16_t current_priority;
 } font_render_t;
 
 

@@ -318,6 +318,16 @@ void st7789_draw_gray2_bitmap(uint8_t *src_buf, st7789_color_t *target_buf, uint
 		uint8_t target_r, target_g, target_b;
 		st7789_color_to_rgb(target_buf[target_pos], &src_r, &src_g, &src_b);
 		uint8_t gray2_color = (src_buf[src_pos >> 2] >> ((src_pos & 0x03) << 1)) & 0x03;
+		/*
+		static const uint32_t src_weights = 0x002b5580;
+		static const uint32_t target_weights = 0x80552b00;
+		const uint32_t src_weight = (src_weights >> (gray2_color << 3)) & 0xff;
+		const uint32_t target_weight = (target_weights >> (gray2_color << 3)) & 0xff;
+		target_r = ((src_weight * src_r) + (target_weight * r)) >> 7;
+		target_g = ((src_weight * src_g) + (target_weight * g)) >> 7;
+		target_b = ((src_weight * src_b) + (target_weight * b)) >> 7;
+		target_buf[target_pos] = st7789_rgb_to_color_dither(target_r, target_g, target_b, x_pos, y_pos);
+		*/
 		switch(gray2_color) {
 			case 1:
 				target_r = r >> 1;
